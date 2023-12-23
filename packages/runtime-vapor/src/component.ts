@@ -11,7 +11,7 @@ import {
 
 import type { Data } from '@vue/shared'
 import { VaporLifecycleHooks } from './apiLifecycle'
-
+import { createDevRenderContext } from './componentPublicInstance'
 export type Component = FunctionalComponent | ObjectComponent
 
 export type SetupFn = (props: any, ctx: any) => Block | Data
@@ -51,6 +51,18 @@ export interface ComponentInternalInstance {
   isUnmountedRef: Ref<boolean>
   isMountedRef: Ref<boolean>
   // TODO: registory of provides, appContext, lifecycles, ...
+
+
+
+
+  /**
+   * This is the target for the public instance proxy. It also holds properties
+   * injected by user options (computed, methods etc.) and user-attached
+   * custom properties (via `this.x = ...`)
+   * @internal
+   */
+  ctx: Data
+
   /**
    * @internal
    */
@@ -142,6 +154,7 @@ export const createComponentInstance = (
     proxy: null,
 
     // state
+    ctx: EMPTY_OBJ,
     props: EMPTY_OBJ,
     setupState: EMPTY_OBJ,
 
@@ -213,6 +226,11 @@ export const createComponentInstance = (
      * @internal
      */
     // [VaporLifecycleHooks.SERVER_PREFETCH]: null,
+  }
+  if (__DEV__) {
+    instance.ctx = createDevRenderContext(instance)
+  } else {
+    instance.ctx = { _: instance }
   }
   return instance
 }
