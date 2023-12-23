@@ -1,4 +1,4 @@
-import { markRaw, proxyRefs } from '@vue/reactivity'
+import { ReactiveEffect, markRaw, proxyRefs } from '@vue/reactivity'
 import { invokeArrayFns, type Data } from '@vue/shared'
 import {
   type Component,
@@ -11,11 +11,32 @@ import { initProps } from './componentProps'
 import { invokeDirectiveHook } from './directive'
 import { insert, remove } from './dom'
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
+import { SchedulerJob, queue } from './scheduler'
 
 export type Block = Node | Fragment | Block[]
 export type ParentBlock = ParentNode | Node[]
 export type Fragment = { nodes: Block; anchor: Node }
 export type BlockFn = (props: any, ctx: any) => Block
+
+export function setupRenderEffect(instance: ComponentInternalInstance) {
+  const componentUpdateFn = () => {}
+  // create reactive effect for rendering
+  const effect = (instance.effect = new ReactiveEffect(
+    componentUpdateFn,
+    () => {},
+    () => queue(update),
+    instance.scope, // track it in component's effect scope
+  ))
+  const update: SchedulerJob = (instance.update = () => {
+    if (effect.dirty) {
+      effect.run()
+    }
+  })
+
+  update.id = instance.uid
+  console.log(update)
+  update()
+}
 
 export function render(
   comp: Component,
@@ -76,12 +97,12 @@ export function mountComponent(
   m && invokeArrayFns(m)
   unsetCurrentInstance()
 
+  setupRenderEffect(instance)
   return instance
 }
 
 export function unmountComponent(instance: ComponentInternalInstance) {
   const { container, block, scope, um, bum } = instance
-
   // hook: beforeUnmount
   bum && invokeArrayFns(bum)
   invokeDirectiveHook(instance, 'beforeUnmount')
