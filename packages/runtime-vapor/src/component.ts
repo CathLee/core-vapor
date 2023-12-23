@@ -11,7 +11,8 @@ import {
 
 import type { Data } from '@vue/shared'
 import { VaporLifecycleHooks } from './apiLifecycle'
-import { createDevRenderContext } from './componentPublicInstance'
+import { ReactiveEffect } from '@vue/reactivity'
+import { SchedulerJob } from './scheduler'
 export type Component = FunctionalComponent | ObjectComponent
 
 export type SetupFn = (props: any, ctx: any) => Block | Data
@@ -42,6 +43,12 @@ export interface ComponentInternalInstance {
   props: Data
   setupState: Data
 
+  // effect
+  effect: ReactiveEffect
+  /**
+   * Bound effect runner to be passed to schedulers
+   */
+  update: SchedulerJob
   /** directives */
   dirs: Map<Node, DirectiveBinding[]>
 
@@ -51,9 +58,6 @@ export interface ComponentInternalInstance {
   isUnmountedRef: Ref<boolean>
   isMountedRef: Ref<boolean>
   // TODO: registory of provides, appContext, lifecycles, ...
-
-
-
 
   /**
    * This is the target for the public instance proxy. It also holds properties
@@ -158,6 +162,10 @@ export const createComponentInstance = (
     props: EMPTY_OBJ,
     setupState: EMPTY_OBJ,
 
+    // effect
+    effect: null!,
+    update: null!, // will be set synchronously right after creation
+
     dirs: new Map(),
 
     // lifecycle
@@ -227,10 +235,6 @@ export const createComponentInstance = (
      */
     // [VaporLifecycleHooks.SERVER_PREFETCH]: null,
   }
-  if (__DEV__) {
-    instance.ctx = createDevRenderContext(instance)
-  } else {
-    instance.ctx = { _: instance }
-  }
+  instance.ctx = { _: instance }
   return instance
 }
