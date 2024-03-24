@@ -117,7 +117,12 @@ function transformNativeElement(
   context.template += `>` + context.childrenTemplate.join('')
   // TODO remove unnecessary close tag, e.g. if it's the last element of the template
   if (!isVoidTag(tag)) {
-    context.template += `</${tag}>`
+    const { node } = context
+    if (node.loc.isShouldSelfClosing) {
+      context.template += ` />`
+    } else {
+      context.template += `</${tag}>`
+    }
   }
 }
 

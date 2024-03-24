@@ -186,7 +186,7 @@ export interface Callbacks {
   onopentagname(start: number, endIndex: number): void
   onopentagend(endIndex: number): void
   onselfclosingtag(endIndex: number): void
-  onclosetag(start: number, endIndex: number): void
+  onclosetag(start: number, endIndex: number, isLastElement: boolean): void
 
   onattribdata(start: number, endIndex: number): void
   onattribentity(char: string, start: number, end: number): void
@@ -246,6 +246,8 @@ export default class Tokenizer {
   public inVPre = false
   /** Record newline positions for fast line / column calculation */
   private newlines: number[] = []
+  // Record current stage
+  private currentStage = ''
 
   private readonly entityDecoder?: EntityDecoder
 
@@ -321,6 +323,7 @@ export default class Tokenizer {
       this.delimiterIndex = 0
       this.stateInterpolationOpen(c)
     }
+    this.currentStage = 'stateText'
   }
 
   public delimiterOpen: Uint8Array = defaultDelimitersOpen
@@ -573,6 +576,7 @@ export default class Tokenizer {
     if (isEndOfTagSection(c)) {
       this.handleTagName(c)
     }
+    this.currentStage = 'stateInTagName'
   }
   private stateInSFCRootTagName(c: number): void {
     if (isEndOfTagSection(c)) {
@@ -608,11 +612,17 @@ export default class Tokenizer {
   }
   private stateInClosingTagName(c: number): void {
     if (c === CharCodes.Gt || isWhitespace(c)) {
-      this.cbs.onclosetag(this.sectionStart, this.index)
+      this.cbs.onclosetag(
+        this.sectionStart,
+        this.index,
+        this.currentStage === 'stateInTagName',
+      )
       this.sectionStart = -1
+
       this.state = State.AfterClosingTagName
       this.stateAfterClosingTagName(c)
     }
+    this.currentStage === 'stateInClosingTagName'
   }
   private stateAfterClosingTagName(c: number): void {
     // Skip everything until ">"
