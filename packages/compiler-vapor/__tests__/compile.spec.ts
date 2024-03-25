@@ -27,6 +27,17 @@ describe('compile', () => {
     expect(code).matchSnapshot()
     expect(code).contains(JSON.stringify('<div><span><div /></span></div>'))
   })
+  test('two close tag ', () => {
+    const code = compile(`<div><span></span><span></span></div>`)
+    expect(code).matchSnapshot()
+    expect(code).contains(JSON.stringify('<div><span /><span /></div>'))
+  })
+
+  test('two close tag with text', () => {
+    const code = compile(`<div><span>ddd</span><span></span></div>`)
+    expect(code).matchSnapshot()
+    expect(code).contains(JSON.stringify('<div><span>ddd</span><span /></div>'))
+  })
 
   test('dynamic root', () => {
     const code = compile(`{{ 1 }}{{ 2 }}`)

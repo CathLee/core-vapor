@@ -219,3 +219,23 @@ export function render(_ctx) {
   return n0
 }"
 `;
+
+exports[`compile > two close tag  1`] = `
+"import { template as _template } from 'vue/vapor';
+const t0 = _template("<div><span /><span /></div>")
+
+export function render(_ctx) {
+  const n0 = t0()
+  return n0
+}"
+`;
+
+exports[`compile > two close tag with text 1`] = `
+"import { template as _template } from 'vue/vapor';
+const t0 = _template("<div><span>ddd</span><span /></div>")
+
+export function render(_ctx) {
+  const n0 = t0()
+  return n0
+}"
+`;
