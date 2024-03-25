@@ -160,7 +160,7 @@ const tokenizer = new Tokenizer(stack, {
         if (e.tag.toLowerCase() === name.toLowerCase()) {
           found = true
           if (isLastElement) {
-            e.loc.isShouldSelfClosing = true
+            e.isShouldSelfClosing = true
           }
           if (i > 0) {
             emitError(ErrorCodes.X_MISSING_END_TAG, stack[0].loc.start.offset)

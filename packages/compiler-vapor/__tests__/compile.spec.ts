@@ -22,6 +22,12 @@ describe('compile', () => {
     expect(code).matchSnapshot()
   })
 
+  test('close tag', () => {
+    const code = compile(`<div><span><div></div></span></div>`)
+    expect(code).matchSnapshot()
+    expect(code).contains(JSON.stringify('<div><span><div /></span></div>'))
+  })
+
   test('dynamic root', () => {
     const code = compile(`{{ 1 }}{{ 2 }}`)
     expect(code).matchSnapshot()
